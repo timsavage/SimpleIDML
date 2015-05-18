@@ -9,6 +9,7 @@ from lxml import etree
 
 from simple_idml.idml import IDMLPackage
 from simple_idml.test import SimpleTestCase
+from simple_idml.utils import etree_dom_to_tree
 
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
@@ -68,16 +69,125 @@ class IdmlTestCase(SimpleTestCase):
                               u'Stories/Story_u139.xml'])
 
             # Tags.
-            self.assertEqual([etree.tostring(tag) for tag in idml_file.tags],
-                             ['<XMLTag Self="XMLTag/advertise" Name="advertise">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Green</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                              '<XMLTag Self="XMLTag/article" Name="article">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Red</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                              '<XMLTag Self="XMLTag/content" Name="content">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Magenta</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                              '<XMLTag Self="XMLTag/description" Name="description">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Gray</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                              '<XMLTag Self="XMLTag/illustration" Name="illustration">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Cyan</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                              '<XMLTag Self="XMLTag/Root" Name="Root">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">LightBlue</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                              '<XMLTag Self="XMLTag/Story" Name="Story">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">BrickRed</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                              '<XMLTag Self="XMLTag/subtitle" Name="subtitle">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Yellow</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n\t',
-                              '<XMLTag Self="XMLTag/title" Name="title">\n\t\t<Properties>\n\t\t\t<TagColor type="enumeration">Blue</TagColor>\n\t\t</Properties>\n\t</XMLTag>\n'])
+            self.assertEqual([etree_dom_to_tree(tag, True) for tag in idml_file.tags], [
+                {'attrs': {'Name': 'advertise', 'Self': 'XMLTag/advertise'},
+                 'content': [{'attrs': {},
+                              'content': [{'attrs': {'type': 'enumeration'},
+                                           'content': [],
+                                           'tag': 'TagColor',
+                                           'tail': '',
+                                           'text': 'Green'}],
+                              'tag': 'Properties',
+                              'tail': '',
+                              'text': ''}],
+                 'tag': 'XMLTag',
+                 'tail': '',
+                 'text': ''},
+                {'attrs': {'Name': 'article', 'Self': 'XMLTag/article'},
+                 'content': [{'attrs': {},
+                              'content': [{'attrs': {'type': 'enumeration'},
+                                           'content': [],
+                                           'tag': 'TagColor',
+                                           'tail': '',
+                                           'text': 'Red'}],
+                              'tag': 'Properties',
+                              'tail': '',
+                              'text': ''}],
+                 'tag': 'XMLTag',
+                 'tail': '',
+                 'text': ''},
+                {'attrs': {'Name': 'content', 'Self': 'XMLTag/content'},
+                 'content': [{'attrs': {},
+                              'content': [{'attrs': {'type': 'enumeration'},
+                                           'content': [],
+                                           'tag': 'TagColor',
+                                           'tail': '',
+                                           'text': 'Magenta'}],
+                              'tag': 'Properties',
+                              'tail': '',
+                              'text': ''}],
+                 'tag': 'XMLTag',
+                 'tail': '',
+                 'text': ''},
+                {'attrs': {'Name': 'description', 'Self': 'XMLTag/description'},
+                 'content': [{'attrs': {},
+                              'content': [{'attrs': {'type': 'enumeration'},
+                                           'content': [],
+                                           'tag': 'TagColor',
+                                           'tail': '',
+                                           'text': 'Gray'}],
+                              'tag': 'Properties',
+                              'tail': '',
+                              'text': ''}],
+                 'tag': 'XMLTag',
+                 'tail': '',
+                 'text': ''},
+            {'attrs': {'Name': 'illustration', 'Self': 'XMLTag/illustration'},
+             'content': [{'attrs': {},
+                          'content': [{'attrs': {'type': 'enumeration'},
+                                       'content': [],
+                                       'tag': 'TagColor',
+                                       'tail': '',
+                                       'text': 'Cyan'}],
+                          'tag': 'Properties',
+                          'tail': '',
+                          'text': ''}],
+             'tag': 'XMLTag',
+             'tail': '',
+             'text': ''},
+            {'attrs': {'Name': 'Root', 'Self': 'XMLTag/Root'},
+             'content': [{'attrs': {},
+                          'content': [{'attrs': {'type': 'enumeration'},
+                                       'content': [],
+                                       'tag': 'TagColor',
+                                       'tail': '',
+                                       'text': 'LightBlue'}],
+                          'tag': 'Properties',
+                          'tail': '',
+                          'text': ''}],
+             'tag': 'XMLTag',
+             'tail': '',
+             'text': ''},
+            {'attrs': {'Name': 'Story', 'Self': 'XMLTag/Story'},
+             'content': [{'attrs': {},
+                          'content': [{'attrs': {'type': 'enumeration'},
+                                       'content': [],
+                                       'tag': 'TagColor',
+                                       'tail': '',
+                                       'text': 'BrickRed'}],
+                          'tag': 'Properties',
+                          'tail': '',
+                          'text': ''}],
+             'tag': 'XMLTag',
+             'tail': '',
+             'text': ''},
+            {'attrs': {'Name': 'subtitle', 'Self': 'XMLTag/subtitle'},
+             'content': [{'attrs': {},
+                          'content': [{'attrs': {'type': 'enumeration'},
+                                       'content': [],
+                                       'tag': 'TagColor',
+                                       'tail': '',
+                                       'text': 'Yellow'}],
+                          'tag': 'Properties',
+                          'tail': '',
+                          'text': ''}],
+             'tag': 'XMLTag',
+             'tail': '',
+             'text': ''},
+            {'attrs': {'Name': 'title', 'Self': 'XMLTag/title'},
+             'content': [{'attrs': {},
+                          'content': [{'attrs': {'type': 'enumeration'},
+                                       'content': [],
+                                       'tag': 'TagColor',
+                                       'tail': '',
+                                       'text': 'Blue'}],
+                          'tag': 'Properties',
+                          'tail': '',
+                          'text': ''}],
+             'tag': 'XMLTag',
+             'tail': '',
+             'text': ''}
+            ])
 
             # Styles.
             self.assertEqual([style.tag for style in idml_file.style_groups], [
@@ -90,10 +200,15 @@ class IdmlTestCase(SimpleTestCase):
 
             # Styles mapping.
             self.assertEqual(idml_file.style_mapping.tostring(),
-                             '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\'?>\n<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">                   </idPkg:Mapping>\n')
+                             "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n<idPkg:Mapping xmlns:idPkg=\"http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging\" DOMVersion=\"7.5\">                   </idPkg:Mapping>\n")
 
             # Fonts.
-            self.assertEqual([font.get("Name") for font in idml_file.font_families], ['Minion Pro', 'Myriad Pro', 'Kozuka Mincho Pro', 'Vollkorn'])
+            self.assertEqual([font.get("Name") for font in idml_file.font_families], [
+                'Minion Pro',
+                'Myriad Pro',
+                'Kozuka Mincho Pro',
+                'Vollkorn'
+            ])
 
             # XML Structure.
             self.assertXMLEqual(unicode(idml_file.xml_structure_pretty()),
@@ -493,7 +608,7 @@ u"""<Root Self="di2">
                                             {
                                                 'tag': 'italique',
                                                 'attrs': {},
-                                                'content': [u'Pel\xe9 dos Santos (Seu Jorge)'],
+                                                'content': [u'Pelé dos Santos (Seu Jorge)'],
                                             },
                                             ', a safety expert and Brazilian musician who sings David Bowie songs in Portuguese, and Klaus Daimler (Willem Dafoe), the German second-in-command who viewed Zissou and Esteban as father figures'
                                         ],
@@ -1867,10 +1982,17 @@ u"""<Root Self="FOOdi2">
                     # Designmap.xml.
                     with f.open("designmap.xml") as df:
                         designmap = etree.fromstring(df.read())
-                        self.assertEqual(
-                            designmap.xpath("/Document")[0].get("StoryList"),
-                            "mainue4 mainu102 mainu11b mainu139 mainu9c mainudd article1u1db article1u188 article1u19f"
-                        )
+                        self.assertEqual(designmap.xpath("/Document")[0].get("StoryList").split(" "), [
+                            "mainue4",
+                            "mainu102",
+                            "mainu11b",
+                            "mainu139",
+                            "mainu9c",
+                            "mainudd",
+                            "article1u1db",
+                            "article1u188",
+                            "article1u19f"
+                        ])
                         self.assertEqual(len(designmap.xpath("/Document/idPkg:Story",
                                                              namespaces={'idPkg': IDPKG_NS})), 8)
 
@@ -1878,26 +2000,36 @@ u"""<Root Self="FOOdi2">
                     styles = [[style.get("Self") for style in style_group.iterchildren()]
                               for style_group in f.style_groups]
                     self.assertEqual(styles, [
-                        ['mainCharacterStyle/$ID/[No character style]',
-                         'article1CharacterStyle/$ID/[No character style]',
-                         'article1CharacterStyle/MyBoldStyle'],
-                        ['mainParagraphStyle/$ID/[No paragraph style]',
-                         'mainParagraphStyle/$ID/NormalParagraphStyle',
-                         'article1ParagraphStyle/$ID/[No paragraph style]',
-                         'article1ParagraphStyle/$ID/NormalParagraphStyle'],
-                        ['mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'],
-                        ['mainTableStyle/$ID/[No table style]',
-                         'mainTableStyle/$ID/[Basic Table]',
-                         'article1TableStyle/$ID/[No table style]',
-                         'article1TableStyle/$ID/[Basic Table]'],
-                        ['mainObjectStyle/$ID/[None]',
-                         'mainObjectStyle/$ID/[Normal Graphics Frame]',
-                         'mainObjectStyle/$ID/[Normal Text Frame]',
-                         'mainObjectStyle/$ID/[Normal Grid]',
-                         'article1ObjectStyle/$ID/[None]',
-                         'article1ObjectStyle/$ID/[Normal Graphics Frame]',
-                         'article1ObjectStyle/$ID/[Normal Text Frame]',
-                         'article1ObjectStyle/$ID/[Normal Grid]']
+                        [
+                            'mainCharacterStyle/$ID/[No character style]',
+                            'article1CharacterStyle/$ID/[No character style]',
+                            'article1CharacterStyle/MyBoldStyle',
+                        ],
+                        [
+                            'mainParagraphStyle/$ID/[No paragraph style]',
+                            'mainParagraphStyle/$ID/NormalParagraphStyle',
+                            'article1ParagraphStyle/$ID/[No paragraph style]',
+                            'article1ParagraphStyle/$ID/NormalParagraphStyle'
+                        ],
+                        [
+                            'mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'
+                        ],
+                        [
+                            'mainTableStyle/$ID/[No table style]',
+                            'mainTableStyle/$ID/[Basic Table]',
+                            'article1TableStyle/$ID/[No table style]',
+                            'article1TableStyle/$ID/[Basic Table]'
+                        ],
+                        [
+                            'mainObjectStyle/$ID/[None]',
+                            'mainObjectStyle/$ID/[Normal Graphics Frame]',
+                            'mainObjectStyle/$ID/[Normal Text Frame]',
+                            'mainObjectStyle/$ID/[Normal Grid]',
+                            'article1ObjectStyle/$ID/[None]',
+                            'article1ObjectStyle/$ID/[Normal Graphics Frame]',
+                            'article1ObjectStyle/$ID/[Normal Text Frame]',
+                            'article1ObjectStyle/$ID/[Normal Grid]'
+                        ]
                     ])
 
                     # Style mapping.
@@ -3221,8 +3353,17 @@ u"""<Root Self="FOOdi2">
                     # Designmap.xml.
                     with f.open("designmap.xml") as df:
                         designmap = etree.fromstring(df.read())
-                        self.assertEqual(designmap.xpath("/Document")[0].get("StoryList"),
-                                         "mainue4 mainu102 mainu11b mainu139 mainu9c mainudd article1u1db article1u188 article1u19f")
+                        self.assertEqual(designmap.xpath("/Document")[0].get("StoryList").split(" "), [
+                            "mainue4",
+                            "mainu102",
+                            "mainu11b",
+                            "mainu139",
+                            "mainu9c",
+                            "mainudd",
+                            "article1u1db",
+                            "article1u188",
+                            "article1u19f"
+                        ])
                         self.assertEqual(len(designmap.xpath("/Document/idPkg:Story",
                                              namespaces={'idPkg': IDPKG_NS})), 8)
 
@@ -3230,26 +3371,36 @@ u"""<Root Self="FOOdi2">
                     styles = [[style.get("Self") for style in style_group.iterchildren()]
                               for style_group in f.style_groups]
                     self.assertEqual(styles, [
-                        ['mainCharacterStyle/$ID/[No character style]',
-                         'article1CharacterStyle/$ID/[No character style]',
-                         'article1CharacterStyle/MyBoldStyle'],
-                        ['mainParagraphStyle/$ID/[No paragraph style]',
-                         'mainParagraphStyle/$ID/NormalParagraphStyle',
-                         'article1ParagraphStyle/$ID/[No paragraph style]',
-                         'article1ParagraphStyle/$ID/NormalParagraphStyle'],
-                        ['mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'],
-                        ['mainTableStyle/$ID/[No table style]',
-                         'mainTableStyle/$ID/[Basic Table]',
-                         'article1TableStyle/$ID/[No table style]',
-                         'article1TableStyle/$ID/[Basic Table]'],
-                        ['mainObjectStyle/$ID/[None]',
-                         'mainObjectStyle/$ID/[Normal Graphics Frame]',
-                         'mainObjectStyle/$ID/[Normal Text Frame]',
-                         'mainObjectStyle/$ID/[Normal Grid]',
-                         'article1ObjectStyle/$ID/[None]',
-                         'article1ObjectStyle/$ID/[Normal Graphics Frame]',
-                         'article1ObjectStyle/$ID/[Normal Text Frame]',
-                         'article1ObjectStyle/$ID/[Normal Grid]']
+                        [
+                            'mainCharacterStyle/$ID/[No character style]',
+                            'article1CharacterStyle/$ID/[No character style]',
+                            'article1CharacterStyle/MyBoldStyle'
+                        ],
+                        [
+                            'mainParagraphStyle/$ID/[No paragraph style]',
+                            'mainParagraphStyle/$ID/NormalParagraphStyle',
+                            'article1ParagraphStyle/$ID/[No paragraph style]',
+                            'article1ParagraphStyle/$ID/NormalParagraphStyle'
+                        ],
+                        [
+                            'mainCellStyle/$ID/[None]', 'article1CellStyle/$ID/[None]'
+                        ],
+                        [
+                            'mainTableStyle/$ID/[No table style]',
+                            'mainTableStyle/$ID/[Basic Table]',
+                            'article1TableStyle/$ID/[No table style]',
+                            'article1TableStyle/$ID/[Basic Table]'
+                        ],
+                        [
+                            'mainObjectStyle/$ID/[None]',
+                            'mainObjectStyle/$ID/[Normal Graphics Frame]',
+                            'mainObjectStyle/$ID/[Normal Text Frame]',
+                            'mainObjectStyle/$ID/[Normal Grid]',
+                            'article1ObjectStyle/$ID/[None]',
+                            'article1ObjectStyle/$ID/[Normal Graphics Frame]',
+                            'article1ObjectStyle/$ID/[Normal Text Frame]',
+                            'article1ObjectStyle/$ID/[Normal Grid]'
+                        ]
                     ])
 
                     # Style mapping.
@@ -3383,7 +3534,8 @@ u"""<Root Self="editodi2">
 </Root>
 """)
 
-    @unittest.skip("This needs to be fixed. Gives some weird results on Travis C.I.")
+    @unittest.skipIf(os.environ.get("TRAVIS"),
+                     "This needs to be fixed. Gives some weird results on Travis C.I.")
     def test_add_pages_from_idml(self):
         edito_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-edito.idml")
         courrier_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-courrier-des-lecteurs.idml")
@@ -3418,7 +3570,8 @@ u"""<Root Self="editodi2">
                         'Spreads/Spread_editoubd.xml']
                     ))
 
-    @unittest.skip("This needs to be fixed. Gives some weird results on Travis C.I.")
+    @unittest.skipIf(os.environ.get("TRAVIS"),
+                     "This needs to be fixed. Gives some weird results on Travis C.I.")
     def test_add_pages_from_idml_to_template(self):
         # Now we use an empty document to hold the pages.
         magazineA_idml_filename = os.path.join(OUTPUT_DIR, "magazineA-template.idml")

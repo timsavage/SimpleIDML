@@ -1,26 +1,32 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import shutil
 import unittest
 from decimal import Decimal
 from lxml import etree
-
-from simple_idml.idml import IDMLPackage
 from simple_idml.components import RECTO, VERSO
 from simple_idml.components import Spread, Story, Style, StyleMapping, XMLElement
+from simple_idml.idml import IDMLPackage
+from simple_idml.utils import etree_dom_to_tree
 
 CURRENT_DIR = os.path.dirname(__file__)
 IDMLFILES_DIR = os.path.join(CURRENT_DIR, "IDML")
 
 
 class DesignmapTestCase(unittest.TestCase):
+    def test_repr(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
+        designmap = idml_file.designmap
+        self.assertEqual(repr(designmap), '<Designmap object designmap.xml at %s>' % hex(id(designmap)))
+        idml_file.close()
+
     def test_layer_nodes(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
         designmap = idml_file.designmap
         self.assertEqual(len(designmap.layer_nodes), 1)
         self.assertEqual(designmap.layer_nodes[0].get("Name"), 'Layer 1')
+        idml_file.close()
 
     def test_add_layer_nodes(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
@@ -45,6 +51,7 @@ class DesignmapTestCase(unittest.TestCase):
         self.assertEqual(len(designmap.layer_nodes), 3)
         self.assertEqual([n.get("Name") for n in designmap.layer_nodes],
                          ['Layer 1', 'Layer 2', 'Layer 3'])
+        idml_file.close()
 
     def test_suffix_layers(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
@@ -52,6 +59,7 @@ class DesignmapTestCase(unittest.TestCase):
         self.assertEqual(designmap.layer_nodes[0].get("Name"), 'Layer 1')
         designmap.suffix_layers(" #66")
         self.assertEqual(designmap.layer_nodes[0].get("Name"), 'Layer 1 #66')
+        idml_file.close()
 
     def test_active_layer(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
@@ -63,6 +71,7 @@ class DesignmapTestCase(unittest.TestCase):
 
         del designmap.active_layer
         self.assertEqual(designmap.active_layer, None)
+        idml_file.close()
 
     def test_remove_layer(self):
         # Remove active layer.
@@ -83,6 +92,34 @@ class DesignmapTestCase(unittest.TestCase):
         self.assertEqual(designmap.active_layer, "u2db")
         designmap.remove_layer("u2db")
         self.assertEqual(designmap.active_layer, None)
+        idml_file.close()
+
+    def test_spread_nodes(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages-layers-with-guides.idml"), mode="r")
+        designmap = idml_file.designmap
+        self.assertEqual([etree_dom_to_tree(n, True) for n in designmap.spread_nodes], [
+            {
+                'attrs': {'src': 'Spreads/Spread_ud8.xml'},
+                'content': [],
+                'tag': '{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
+                'tail': '',
+                'text': None
+            },
+            {
+                'attrs': {'src': 'Spreads/Spread_u13b.xml'},
+                'content': [],
+                'tag': '{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
+                'tail': '',
+                'text': None
+            },
+            {
+                'attrs': {'src': 'Spreads/Spread_u142.xml'},
+                'content': [],
+                'tag': '{http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging}Spread',
+                'tail': '',
+                'text': None
+            }
+        ])
         idml_file.close()
 
 
@@ -239,6 +276,31 @@ class PageTestCase(unittest.TestCase):
             'y2': Decimal('379.8425196850394'),
         })
 
+    def test_geometric_bounds(self):
+        idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs-3pages.idml"), mode="r")
+        spread = Spread(idml_file, idml_file.spreads[1])
+
+        page3 = spread.pages[1]
+        self.assertEqual(page3.geometric_bounds, [
+            Decimal('0'),
+            Decimal('0'),
+            Decimal('759.6850393700788'),
+            Decimal('566.9291338582677')
+        ])
+
+        page3.geometric_bounds = [
+            Decimal('210'),
+            Decimal('297'),
+            Decimal('10.51'),
+            Decimal('7.23')
+        ]
+        self.assertEqual(page3.geometric_bounds, [
+            Decimal('210'),
+            Decimal('297'),
+            Decimal('10.51'),
+            Decimal('7.23')
+        ])
+
     def test_is_recto(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "magazineA-courrier-des-lecteurs-3pages.idml"), mode="r")
         spread1 = Spread(idml_file, idml_file.spreads[0])
@@ -266,23 +328,58 @@ class StyleTestCase(unittest.TestCase):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"), mode="r")
         style = Style(idml_file)
         style_node = style.get_style_node_by_name("CharacterStyle/bold")
-        self.assertEqual(etree.tostring(style_node, pretty_print=True).replace("\t", " ").replace("\n", ""),
-                         """<CharacterStyle xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" Self="CharacterStyle/bold" Imported="false" KeyboardShortcut="0 0" Name="bold" FontStyle="Bold">   <Properties>    <BasedOn type="string">$ID/[No character style]</BasedOn>    <PreviewColor type="enumeration">Nothing</PreviewColor>   </Properties>  </CharacterStyle>  """)
+        self.assertEqual(style_node.nsmap, {'idPkg': 'http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging'})
+        self.assertEqual(etree_dom_to_tree(style_node, True), {
+            'attrs': {
+                'FontStyle': 'Bold',
+                'Imported': 'false',
+                'KeyboardShortcut': '0 0',
+                'Name': 'bold',
+                'Self': 'CharacterStyle/bold'
+            },
+            'content': [
+                {
+                    'attrs': {},
+                    'content': [
+                        {
+                            'attrs': {'type': 'string'},
+                            'content': [],
+                            'tag': 'BasedOn',
+                            'tail': '',
+                            'text': '$ID/[No character style]'
+                        },
+                        {
+                            'attrs': {'type': 'enumeration'},
+                            'content': [],
+                            'tag': 'PreviewColor',
+                            'tail': '',
+                            'text': 'Nothing'
+                        }
+                    ],
+                    'tag': 'Properties',
+                    'tail': '',
+                    'text': ''
+                }
+            ],
+            'tag': 'CharacterStyle',
+            'tail': '',
+            'text': ''
+        })
 
 
 class StyleMappingTestCase(unittest.TestCase):
     def test_styles(self):
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "article-1photo_import-xml.idml"), mode="r")
         style_mapping = StyleMapping(idml_file)
-        self.assertEqual(
-            [line.strip() for line in style_mapping.tostring().split("\n")],
-            ["<?xml version='1.0' encoding='UTF-8' standalone='yes'?>",
-             '<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="10.0">',
-             '<XMLImportMap Self="did2" MarkupTag="XMLTag/bold" MappedStyle="CharacterStyle/bold"/>',
-             '<XMLImportMap Self="di13f" MarkupTag="XMLTag/italique" MappedStyle="CharacterStyle/italique"/>',
-             '<XMLImportMap Self="di141" MarkupTag="XMLTag/sup" MappedStyle="CharacterStyle/sup"/>',
-             '</idPkg:Mapping>',
-             ''])
+        self.assertEqual([line.strip() for line in style_mapping.tostring().split("\n")], [
+            "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>",
+            '<idPkg:Mapping xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="10.0">',
+            '<XMLImportMap Self="did2" MarkupTag="XMLTag/bold" MappedStyle="CharacterStyle/bold"/>',
+            '<XMLImportMap Self="di13f" MarkupTag="XMLTag/italique" MappedStyle="CharacterStyle/italique"/>',
+            '<XMLImportMap Self="di141" MarkupTag="XMLTag/sup" MappedStyle="CharacterStyle/sup"/>',
+            '</idPkg:Mapping>',
+            ''
+        ])
 
         # The XML/Mapping.xml may not be present.
         idml_file = IDMLPackage(os.path.join(IDMLFILES_DIR, "4-pages.idml"), mode="r")
@@ -298,6 +395,14 @@ class StyleMappingTestCase(unittest.TestCase):
 
 
 class XMLElementTestCase(unittest.TestCase):
+    def test_repr(self):
+        node = etree.fromstring('<XMLElement Self="di3i4i1" MarkupTag="XMLTag/main_picture" XMLContent="u143" />')
+        elt = XMLElement(node)
+        self.assertEqual(
+            repr(elt),
+            '<Element XMLElement at %s> {Self: di3i4i1, MarkupTag: XMLTag/main_picture, XMLContent: u143}' % hex(id(elt.element))
+        )
+
     def test_attributes(self):
         dom = etree.fromstring("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <idPkg:Story xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="7.5">
@@ -348,126 +453,6 @@ class XMLElementTestCase(unittest.TestCase):
                                     "style": "fancy"})
         self.assertEqual(picture_elt.get_attribute("href"), "file:///maison.jpg")
         self.assertEqual(picture_elt.get_attribute("style"), "fancy")
-
-    # TODO: this code is no longer in component. These tests need to be rewritten somewhere else.
-    def notest_create_style_element(self):
-        parent = XMLElement(etree.fromstring("""
-            <XMLElement Self="di3i4i1i2i2i2" MarkupTag="XMLTag/texte">
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
-                                  FontStyle="Semibold" PointSize="9" HorizontalScale="90" Tracking="-30">
-                    <Properties>
-                        <Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-                    <Content>Lorem ipsum dolor sit amet, consectetur adipisicing elit,
-                                  sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. </Content>
-                </CharacterStyleRange>
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
-                                  FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
-                    <Properties>
-                        <Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-                    <Content>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum d</Content>
-                </CharacterStyleRange>
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
-                                  FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
-                    <Properties>
-                        <Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-                    <Content> nulla pariatur. Excepteur </Content>
-                </CharacterStyleRange>
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
-                                  FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
-                    <Properties>
-                        <Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-                    <Content> cupidatat </Content>
-                </CharacterStyleRange>
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
-                                  FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-30">
-                    <Properties>
-                        <Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-                    <Content>, sunt in culpa qui officia dese</Content>
-                </CharacterStyleRange>
-                <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]"
-                                  FontStyle="Regular" PointSize="9" HorizontalScale="90" Tracking="-10">
-                    <Properties>
-                        <Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-                    <Br/>
-                </CharacterStyleRange>
-            </XMLElement>"""))
-
-        # No style provided > parent style used.
-        xml_element = XMLElement(tag="bold")
-        style_element = xml_element._create_style_element(parent, style_node=None)
-        self.assertEqual(etree.tostring(style_element, pretty_print=True),
-"""<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" PointSize="9" FontStyle="Semibold" HorizontalScale="90" Tracking="-30">
-  <Properties><Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-</CharacterStyleRange>
-""")
-
-        # Style specify the font style only : parent font-face and size are added.
-        style_node = etree.fromstring("""
-            <CharacterStyle Self="CharacterStyle/bold" Imported="false" KeyboardShortcut="0 0" Name="bold" FontStyle="Bold">
-                <Properties>
-                    <BasedOn type="string">$ID/[No character style]</BasedOn>
-                    <PreviewColor type="enumeration">Nothing</PreviewColor>
-                </Properties>
-            </CharacterStyle>""")
-        xml_element = XMLElement(tag="bold")
-        style_element = xml_element._create_style_element(parent, style_node)
-        self.assertEqual(etree.tostring(style_element, pretty_print=True),
-"""<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/bold" PointSize="9" HorizontalScale="90" Tracking="-30">
-  <Properties><Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-</CharacterStyleRange>
-""")
-
-        # Style specify the font style and size : parent font-face is added.
-        style_node = etree.fromstring("""
-            <CharacterStyle Self="CharacterStyle/bold12" Imported="false" KeyboardShortcut="0 0" Name="bold12" FontStyle="Bold" PointSize="12">
-                <Properties>
-                    <BasedOn type="string">$ID/[No character style]</BasedOn>
-                    <PreviewColor type="enumeration">Nothing</PreviewColor>
-                </Properties>
-            </CharacterStyle>""")
-        xml_element = XMLElement(tag="bold12")
-        style_element = xml_element._create_style_element(parent, style_node)
-        self.assertEqual(etree.tostring(style_element, pretty_print=True),
-"""<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/bold12" HorizontalScale="90" Tracking="-30">
-  <Properties><Leading type="unit">10</Leading>
-                        <AppliedFont type="string">Adobe Garamond</AppliedFont>
-                    </Properties>
-</CharacterStyleRange>
-""")
-
-        # Style specify the font style, font-face and size.
-        style_node = etree.fromstring("""
-            <CharacterStyle Self="CharacterStyle/CSBold11" Imported="false" KeyboardShortcut="0 0" Name="CSBold11" FontStyle="Bold" PointSize="11">
-                <Properties>
-                    <BasedOn type="string">$ID/[No character style]</BasedOn>
-                    <PreviewColor type="enumeration">Nothing</PreviewColor>
-                    <AppliedFont type="string">Comic Sans MS</AppliedFont>
-                </Properties>
-            </CharacterStyle>""")
-        xml_element = XMLElement(tag="CSBold11")
-        style_element = xml_element._create_style_element(parent, style_node)
-        self.assertEqual(etree.tostring(style_element, pretty_print=True),
-"""<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/CSBold11" HorizontalScale="90" Tracking="-30">
-  <Properties><Leading type="unit">10</Leading>
-                        </Properties>
-</CharacterStyleRange>
-""")
 
     def test_get_character_style_range(self):
         elt = XMLElement(etree.fromstring("""
